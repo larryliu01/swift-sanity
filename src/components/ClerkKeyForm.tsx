@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
-import { AlertCircle, Save } from 'lucide-react';
+import { AlertCircle, Save, Check } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const ClerkKeyForm = () => {
@@ -27,6 +27,15 @@ const ClerkKeyForm = () => {
         variant: "destructive"
       });
       return;
+    }
+
+    if (!key.startsWith('pk_')) {
+      toast({
+        title: "Warning",
+        description: "This doesn't appear to be a valid Clerk publishable key. Keys should start with 'pk_'",
+        variant: "destructive"
+      });
+      // Continue anyway as the user might know what they're doing
     }
 
     // Save key to localStorage
@@ -58,15 +67,26 @@ const ClerkKeyForm = () => {
           className="flex-1"
         />
         <Button onClick={handleSave}>
-          <Save className="mr-2 h-4 w-4" />
-          Save
+          {saved ? <Check className="mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+          {saved ? "Saved" : "Save"}
         </Button>
       </div>
       
       {saved && (
-        <p className="text-sm text-green-600">
-          Key saved! Please refresh the page to apply changes.
-        </p>
+        <div className="bg-green-50 p-3 rounded border border-green-200">
+          <p className="text-sm text-green-600 flex items-center">
+            <Check className="h-4 w-4 mr-2" />
+            Key saved! Please refresh the page to apply changes.
+          </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-2"
+            onClick={() => window.location.reload()}
+          >
+            Refresh Page
+          </Button>
+        </div>
       )}
     </div>
   );
