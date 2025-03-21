@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProfilePage from "./pages/Profile";
+import { ClerkProvider } from "@clerk/clerk-react";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -47,9 +48,6 @@ const App = () => {
 
   // If we have a Clerk key, use the ClerkProvider
   if (publishableKey) {
-    // We need to import Clerk only when we have the key
-    const { ClerkProvider } = require("@clerk/clerk-react");
-    
     return (
       <ClerkProvider
         publishableKey={publishableKey}

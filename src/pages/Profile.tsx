@@ -7,13 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, LogOut, UserIcon } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ClerkKeyForm from '../components/ClerkKeyForm';
-
-// Conditionally import Clerk components to avoid errors when Clerk is not available
-let SignInButton: any = () => null;
-let SignOutButton: any = () => null;
-let UserButton: any = () => null;
-let useAuth: any = () => ({ isLoaded: true, userId: null, sessionId: null });
-let useUser: any = () => ({ user: null });
+import { SignInButton, SignOutButton, UserButton, useAuth, useUser } from '@clerk/clerk-react';
 
 // Check for key in environment variables first
 let PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -25,25 +19,32 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Only import Clerk if it's available in the environment
-if (PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0) {
-  try {
-    const clerk = require('@clerk/clerk-react');
-    SignInButton = clerk.SignInButton;
-    SignOutButton = clerk.SignOutButton;
-    UserButton = clerk.UserButton;
-    useAuth = clerk.useAuth;
-    useUser = clerk.useUser;
-  } catch (e) {
-    console.error("Failed to import Clerk components:", e);
-  }
-}
-
 const ProfilePage = () => {
-  const { isLoaded, userId, sessionId } = useAuth();
-  const { user } = useUser();
+  // Default values for when Clerk is not available
+  let isLoaded = true;
+  let userId = null;
+  let sessionId = null;
+  let user = null;
   
-  if (!isLoaded) {
+  // Check if Clerk is available
+  const isClerkAvailable = PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0;
+  
+  // Only use Clerk hooks if it's available
+  if (isClerkAvailable) {
+    try {
+      const authData = useAuth();
+      isLoaded = authData.isLoaded;
+      userId = authData.userId;
+      sessionId = authData.sessionId;
+      
+      const userData = useUser();
+      user = userData.user;
+    } catch (e) {
+      console.error("Failed to use Clerk hooks:", e);
+    }
+  }
+  
+  if (!isLoaded && isClerkAvailable) {
     return (
       <div className="min-h-screen pt-12 pb-24 px-6 flex flex-col items-center justify-center">
         <div className="w-16 h-16 rounded-full bg-gray-100 animate-pulse mb-4"></div>
@@ -51,9 +52,6 @@ const ProfilePage = () => {
       </div>
     );
   }
-
-  // Check if Clerk is available
-  const isClerkAvailable = PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0;
   
   return (
     <div className="min-h-screen pt-12 pb-24 px-6 relative">
@@ -118,13 +116,7 @@ const ProfilePage = () => {
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center space-x-4 mb-6">
-              {UserButton ? (
-                <UserButton />
-              ) : (
-                <Avatar>
-                  <AvatarFallback><UserIcon className="h-4 w-4" /></AvatarFallback>
-                </Avatar>
-              )}
+              <UserButton />
               <div>
                 <h2 className="font-medium text-lg">
                   {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : "User"}
@@ -144,19 +136,12 @@ const ProfilePage = () => {
                 <Button variant="outline" className="w-full justify-start">
                   Dark Mode
                 </Button>
-                {SignOutButton ? (
-                  <SignOutButton>
-                    <Button variant="destructive" className="w-full justify-start">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </Button>
-                  </SignOutButton>
-                ) : (
+                <SignOutButton>
                   <Button variant="destructive" className="w-full justify-start">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </Button>
-                )}
+                </SignOutButton>
               </div>
             </div>
           </motion.div>
