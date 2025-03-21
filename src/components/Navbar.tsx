@@ -3,8 +3,19 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, List, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
-import AnimatedLogo from './AnimatedLogo';
+
+// Conditionally import Clerk components
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+let useAuth: any = () => ({ userId: null });
+
+if (PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0) {
+  try {
+    const clerk = require('@clerk/clerk-react');
+    useAuth = clerk.useAuth;
+  } catch (e) {
+    console.error("Failed to import Clerk components:", e);
+  }
+}
 
 const Navbar: React.FC = () => {
   const location = useLocation();

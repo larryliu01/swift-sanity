@@ -1,12 +1,33 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useAuth, useUser, SignInButton, SignOutButton, UserButton } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, LogOut } from 'lucide-react';
+import { AlertCircle, LogOut, UserIcon } from 'lucide-react';
 import Navbar from '../components/Navbar';
+
+// Conditionally import Clerk components to avoid errors when Clerk is not available
+let SignInButton: any = () => null;
+let SignOutButton: any = () => null;
+let UserButton: any = () => null;
+let useAuth: any = () => ({ isLoaded: true, userId: null, sessionId: null });
+let useUser: any = () => ({ user: null });
+
+// Only import Clerk if it's available in the environment
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+if (PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0) {
+  try {
+    const clerk = require('@clerk/clerk-react');
+    SignInButton = clerk.SignInButton;
+    SignOutButton = clerk.SignOutButton;
+    UserButton = clerk.UserButton;
+    useAuth = clerk.useAuth;
+    useUser = clerk.useUser;
+  } catch (e) {
+    console.error("Failed to import Clerk components:", e);
+  }
+}
 
 const ProfilePage = () => {
   const { isLoaded, userId, sessionId } = useAuth();
@@ -20,6 +41,9 @@ const ProfilePage = () => {
       </div>
     );
   }
+
+  // Check if Clerk is available
+  const isClerkAvailable = PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0;
   
   return (
     <div className="min-h-screen pt-12 pb-24 px-6 relative">
@@ -32,7 +56,29 @@ const ProfilePage = () => {
           <h1 className="text-2xl font-bold">Profile</h1>
         </motion.div>
         
-        {!userId ? (
+        {!isClerkAvailable ? (
+          <motion.div 
+            className="flex flex-col items-center justify-center py-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Alert className="mb-8">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Clerk Authentication Not Configured</AlertTitle>
+              <AlertDescription>
+                To enable authentication features, you need to set up the Clerk publishable key.
+                Please add VITE_CLERK_PUBLISHABLE_KEY to your environment variables.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="mt-6">
+              <h3 className="font-medium mb-2">Demo Mode Active</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                You're currently viewing the application in demo mode without authentication.
+              </p>
+            </div>
+          </motion.div>
+        ) : !userId ? (
           <motion.div 
             className="flex flex-col items-center justify-center py-16 text-center"
             initial={{ opacity: 0, y: 20 }}
@@ -61,13 +107,19 @@ const ProfilePage = () => {
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center space-x-4 mb-6">
-              <UserButton />
+              {UserButton ? (
+                <UserButton />
+              ) : (
+                <Avatar>
+                  <AvatarFallback><UserIcon className="h-4 w-4" /></AvatarFallback>
+                </Avatar>
+              )}
               <div>
                 <h2 className="font-medium text-lg">
-                  {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.emailAddresses[0]?.emailAddress}
+                  {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : "User"}
                 </h2>
                 <p className="text-gray-500 text-sm">
-                  {user?.emailAddresses[0]?.emailAddress}
+                  {user?.emailAddresses?.[0]?.emailAddress || "user@example.com"}
                 </p>
               </div>
             </div>
@@ -81,12 +133,19 @@ const ProfilePage = () => {
                 <Button variant="outline" className="w-full justify-start">
                   Dark Mode
                 </Button>
-                <SignOutButton>
+                {SignOutButton ? (
+                  <SignOutButton>
+                    <Button variant="destructive" className="w-full justify-start">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </SignOutButton>
+                ) : (
                   <Button variant="destructive" className="w-full justify-start">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </Button>
-                </SignOutButton>
+                )}
               </div>
             </div>
           </motion.div>
