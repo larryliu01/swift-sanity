@@ -2,9 +2,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, LogOut, UserIcon } from 'lucide-react';
+import { AlertCircle, LogOut } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ClerkKeyForm from '../components/ClerkKeyForm';
 import { SignInButton, SignOutButton, UserButton, useAuth, useUser } from '@clerk/clerk-react';

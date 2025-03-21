@@ -56,6 +56,8 @@ const App = () => {
         signUpUrl="/sign-up"
         signInFallbackRedirectUrl="/"
         signUpFallbackRedirectUrl="/"
+        signInForceRedirectUrl="/"
+        signUpForceRedirectUrl="/"
         afterSignOutUrl="/"
       >
         <AppContent />

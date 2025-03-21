@@ -3,24 +3,19 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, List, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 
 // Conditionally import Clerk components
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-let useAuth: any = () => ({ userId: null });
-
-if (PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0) {
-  try {
-    const clerk = require('@clerk/clerk-react');
-    useAuth = clerk.useAuth;
-  } catch (e) {
-    console.error("Failed to import Clerk components:", e);
-  }
-}
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 
+  (typeof window !== 'undefined' ? localStorage.getItem('VITE_CLERK_PUBLISHABLE_KEY') : null);
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  
+  // Only try to use Clerk if the key is available
+  const auth = PUBLISHABLE_KEY ? useAuth() : { userId: null };
+  const userId = auth?.userId;
   
   const isActive = (path: string) => location.pathname === path;
   
