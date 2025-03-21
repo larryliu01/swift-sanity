@@ -3,11 +3,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, List, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import AnimatedLogo from './AnimatedLogo';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { userId } = useAuth();
   
   const isActive = (path: string) => location.pathname === path;
   
