@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, LogOut, UserIcon } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import ClerkKeyForm from '../components/ClerkKeyForm';
 
 // Conditionally import Clerk components to avoid errors when Clerk is not available
 let SignInButton: any = () => null;
@@ -14,8 +15,17 @@ let UserButton: any = () => null;
 let useAuth: any = () => ({ isLoaded: true, userId: null, sessionId: null });
 let useUser: any = () => ({ user: null });
 
+// Check for key in environment variables first
+let PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+// If not found, check localStorage (client-side only)
+if (typeof window !== 'undefined') {
+  if (!PUBLISHABLE_KEY) {
+    PUBLISHABLE_KEY = localStorage.getItem('VITE_CLERK_PUBLISHABLE_KEY');
+  }
+}
+
 // Only import Clerk if it's available in the environment
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0) {
   try {
     const clerk = require('@clerk/clerk-react');
@@ -58,7 +68,7 @@ const ProfilePage = () => {
         
         {!isClerkAvailable ? (
           <motion.div 
-            className="flex flex-col items-center justify-center py-16 text-center"
+            className="flex flex-col items-center justify-center py-8 text-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -67,9 +77,10 @@ const ProfilePage = () => {
               <AlertTitle>Clerk Authentication Not Configured</AlertTitle>
               <AlertDescription>
                 To enable authentication features, you need to set up the Clerk publishable key.
-                Please add VITE_CLERK_PUBLISHABLE_KEY to your environment variables.
               </AlertDescription>
             </Alert>
+            
+            <ClerkKeyForm />
             
             <div className="mt-6">
               <h3 className="font-medium mb-2">Demo Mode Active</h3>

@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProfilePage from "./pages/Profile";
@@ -11,13 +12,21 @@ import ProfilePage from "./pages/Profile";
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-// Get the Clerk publishable key
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-// Check if we have a Clerk key
-const hasClerkKey = PUBLISHABLE_KEY && PUBLISHABLE_KEY.length > 0;
-
 const App = () => {
+  const [publishableKey, setPublishableKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for key in environment variables first
+    let key = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+    
+    // If not found, check localStorage
+    if (!key) {
+      key = localStorage.getItem('VITE_CLERK_PUBLISHABLE_KEY');
+    }
+    
+    setPublishableKey(key);
+  }, []);
+
   // Create the app content that will be used with or without Clerk
   const AppContent = () => (
     <QueryClientProvider client={queryClient}>
@@ -37,13 +46,13 @@ const App = () => {
   );
 
   // If we have a Clerk key, use the ClerkProvider
-  if (hasClerkKey) {
+  if (publishableKey) {
     // We need to import Clerk only when we have the key
     const { ClerkProvider } = require("@clerk/clerk-react");
     
     return (
       <ClerkProvider
-        publishableKey={PUBLISHABLE_KEY}
+        publishableKey={publishableKey}
         clerkJSVersion="5.56.0-snapshot.v20250312225817"
         signInUrl="/sign-in"
         signUpUrl="/sign-up"
