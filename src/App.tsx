@@ -25,7 +25,10 @@ const App = () => {
       key = localStorage.getItem('VITE_CLERK_PUBLISHABLE_KEY');
     }
     
-    setPublishableKey(key);
+    // Only set the key if it's valid
+    if (key && typeof key === 'string' && key.trim().startsWith('pk_')) {
+      setPublishableKey(key);
+    }
   }, []);
 
   // Create the app content that will be used with or without Clerk
@@ -46,7 +49,7 @@ const App = () => {
     </QueryClientProvider>
   );
 
-  // If we have a Clerk key, use the ClerkProvider
+  // If we have a valid Clerk key, use the ClerkProvider
   if (publishableKey) {
     return (
       <ClerkProvider
